@@ -1,0 +1,1304 @@
+<html>
+
+<head>
+  <base href="https://example.com/">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Système de pointage du personnel</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script src="https://unpkg.com/xlsx@0.15.1/dist/xlsx.full.min.js"></script>
+  <style>
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      max-width: 800px;
+      margin: 20px auto;
+      padding: 20px;
+      background-color: #f5f5f5;
+      background-image: linear-gradient(to bottom right, #f9f9f9, #ececec);
+      background-size: 200% 200%;
+      animation: gradientBG 15s ease infinite;
+    }
+
+    @keyframes gradientBG {
+      0% { background-position: 0% 50%; }
+      50% { background-position: 100% 50%; }
+      100% { background-position: 0% 50%; }
+    }
+
+    .form-container {
+      background: url('https://www.ecoview.ae/wp-content/uploads/2022/02/TIS-LOGO-e1646026001988_01e0013b0.png') no-repeat;
+      background-size: 20%;
+      background-position: top right;
+      padding: 30px;
+      border-radius: 10px;
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+      transition: all 0.2s ease;
+      background-color: white;
+      border-top: 5px solid #007bff;
+    }
+
+    .form-container:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 15px 30px rgba(0, 0, 0, 0.15);
+    }
+
+    .form-group {
+      margin-bottom: 25px;
+      transition: all 0.2s ease;
+    }
+
+    .form-group:hover {
+      transform: translateX(2px);
+    }
+
+    label {
+      display: block;
+      margin-bottom: 8px;
+      font-weight: bold;
+      color: #333;
+      transition: color 0.3s;
+    }
+
+    .form-group:hover label {
+      color: #007bff;
+    }
+
+    input[type="text"],
+    select,
+    textarea {
+      width: 100%;
+      padding: 12px;
+      border: 1px solid #ddd;
+      border-radius: 5px;
+      margin-bottom: 10px;
+      transition: all 0.3s ease;
+      box-shadow: inset 0 1px 3px rgba(0,0,0,0.1);
+    }
+
+    input[type="text"]:focus,
+    select:focus,
+    textarea:focus {
+      border-color: #007bff;
+      box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.25);
+      outline: none;
+    }
+
+    /* ... existing code ... */
+    
+    /* Employee Grid Styles */
+    .employee-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+      gap: 20px;
+      margin-top: 20px;
+      margin-bottom: 30px;
+    }
+    
+    .employee-card {
+      background-color: white;
+      border-radius: 10px;
+      overflow: hidden;
+      box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+      transition: all 0.3s ease;
+      cursor: pointer;
+      position: relative;
+      border: none;
+    }
+    
+    .employee-card:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 15px 30px rgba(0,0,0,0.2);
+    }
+    
+    .employee-image-container {
+      position: relative;
+      overflow: hidden;
+      height: 180px;
+    }
+    
+    .employee-image {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      transition: all 0.5s ease;
+      border: none;
+      filter: brightness(0.9);
+    }
+    
+    .employee-card:hover .employee-image {
+      filter: brightness(1.1);
+      transform: scale(1.05);
+    }
+    
+    .employee-info {
+      padding: 15px;
+      background: linear-gradient(to bottom, #ffffff, #f5f5f5);
+    }
+    
+    .employee-name {
+      font-size: 1.1em;
+      font-weight: 600;
+      margin: 0;
+      color: #2c3e50;
+      text-align: center;
+    }
+    
+    .job-title {
+      display: inline-block;
+      background: linear-gradient(135deg, #f1c40f, #f39c12);
+      color: #2c3e50;
+      padding: 4px 10px;
+      font-size: 0.85em;
+      font-weight: 600;
+      border-radius: 20px;
+      margin: 8px 0;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+      width: 100%;
+      text-align: center;
+    }
+    
+    .edit-employee {
+      position: absolute;
+      top: 10px;
+      left: 10px;
+      background: rgba(255, 255, 255, 0.8);
+      border-radius: 50%;
+      width: 30px;
+      height: 30px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      opacity: 0;
+      transition: opacity 0.3s ease;
+      z-index: 5;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+    }
+    
+    .employee-card:hover .edit-employee {
+      opacity: 1;
+    }
+    
+    /* Employee Edit Modal */
+    #employeeEditModal {
+      z-index: 1100;
+    }
+    
+    .edit-form-container {
+      padding: 20px;
+    }
+    
+    .edit-form-group {
+      margin-bottom: 15px;
+    }
+    
+    .edit-form-group label {
+      display: block;
+      margin-bottom: 5px;
+      font-weight: 600;
+    }
+    
+    .edit-form-actions {
+      display: flex;
+      justify-content: flex-end;
+      gap: 10px;
+      margin-top: 20px;
+    }
+    /* ... existing code ... */
+    
+    /* Timesheet table styles */
+    .timesheet-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 20px;
+      background: white;
+      box-shadow: 0 5px 15px rgba(0,0,0,0.08);
+      border-radius: 8px;
+      overflow: hidden;
+    }
+    
+    .timesheet-table th,
+    .timesheet-table td {
+      padding: 12px 15px;
+      text-align: left;
+      border-bottom: 1px solid #eee;
+    }
+    
+    .timesheet-table th {
+      background-color: #f8f9fa;
+      font-weight: bold;
+      color: #2c3e50;
+    }
+    
+    .timesheet-table tr:last-child td {
+      border-bottom: none;
+    }
+    
+    .timesheet-table tr:hover td {
+      background-color: rgba(0, 123, 255, 0.05);
+    }
+    
+    .timesheet-status {
+      padding: 4px 8px;
+      border-radius: 20px;
+      font-size: 0.85em;
+      font-weight: bold;
+    }
+    
+    .status-in {
+      background-color: #e8f5e9;
+      color: #2e7d32;
+    }
+    
+    .status-out {
+      background-color: #ffebee;
+      color: #c62828;
+    }
+
+    /* Modal Styles */
+    .modal-overlay {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background-color: rgba(0, 0, 0, 0.5);
+      z-index: 1000;
+      justify-content: center;
+      align-items: center;
+    }
+    
+    .modal-overlay.modal-show {
+      display: flex;
+    }
+    
+    .modal-content {
+      background-color: white;
+      border-radius: 10px;
+      width: 90%;
+      max-width: 800px;
+      max-height: 90vh;
+      overflow: auto;
+      box-shadow: 0 15px 30px rgba(0, 0, 0, 0.2);
+      transform: translateY(30px);
+      opacity: 0;
+      transition: transform 0.3s ease, opacity 0.3s ease;
+    }
+    
+    .modal-content-show {
+      transform: translateY(0);
+      opacity: 1;
+    }
+    
+    .modal-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 15px 20px;
+      border-bottom: 1px solid #eee;
+    }
+    
+    .modal-header h3 {
+      margin: 0;
+      color: #333;
+    }
+    
+    .modal-actions {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    
+    .delete-history-btn {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      background: linear-gradient(135deg, #ff6b6b, #ee0979);
+      color: white;
+      border: none;
+      border-radius: 5px;
+      padding: 8px 15px;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      box-shadow: 0 4px 10px rgba(238, 9, 121, 0.3);
+    }
+    
+    .delete-history-btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 15px rgba(238, 9, 121, 0.4);
+    }
+    
+    .delete-history-btn svg {
+      width: 18px;
+      height: 18px;
+    }
+    
+    .close-modal {
+      background: none;
+      border: none;
+      font-size: 24px;
+      cursor: pointer;
+      color: #777;
+      transition: color 0.2s;
+    }
+    
+    .close-modal:hover {
+      color: #f44336;
+    }
+    
+    #timesheetContainer {
+      padding: 20px;
+    }
+    
+    /* Enhanced Button Styles */
+    .form-actions button, .action-button {
+      padding: 12px 20px;
+      border: none;
+      border-radius: 8px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      color: #fff;
+      background: linear-gradient(135deg, #6e8efb, #4a6cf7);
+      box-shadow: 0 4px 10px rgba(74, 108, 247, 0.3);
+    }
+    
+    .form-actions button:hover, .action-button:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 15px rgba(74, 108, 247, 0.4);
+    }
+    
+    .form-actions button:active, .action-button:active {
+      transform: translateY(1px);
+      box-shadow: 0 2px 5px rgba(74, 108, 247, 0.4);
+    }
+    
+    .form-actions button svg, .action-button svg {
+      width: 20px;
+      height: 20px;
+    }
+    
+    .form-actions button.active {
+      background: linear-gradient(135deg, #45c57e, #21a366);
+      box-shadow: 0 4px 10px rgba(33, 163, 102, 0.3);
+    }
+    
+    .clock-in-btn {
+      background: linear-gradient(135deg, #52c234, #36b677) !important;
+      box-shadow: 0 4px 10px rgba(54, 182, 119, 0.3) !important;
+    }
+    
+    .clock-out-btn {
+      background: linear-gradient(135deg, #ff6b6b, #ee0979) !important;
+      box-shadow: 0 4px 10px rgba(238, 9, 121, 0.3) !important;
+    }
+    
+    /* Enhanced Summary Toggle Button */
+    .toggle-summary {
+      background: none;
+      border: none;
+      width: 42px;
+      height: 42px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      background: linear-gradient(135deg, #00c6ff, #0072ff);
+      box-shadow: 0 4px 10px rgba(0, 114, 255, 0.3);
+    }
+    
+    .toggle-summary svg {
+      width: 24px;
+      height: 24px;
+      fill: white;
+      transition: all 0.3s ease;
+    }
+    
+    .toggle-summary:hover {
+      transform: rotate(15deg) scale(1.1);
+      box-shadow: 0 6px 15px rgba(0, 114, 255, 0.4);
+    }
+    
+    .toggle-summary.active {
+      background: linear-gradient(135deg, #ff5f6d, #ff9966);
+      box-shadow: 0 4px 10px rgba(255, 95, 109, 0.3);
+      transform: rotate(-15deg);
+    }
+    
+    .summary-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 15px;
+    }
+    
+    .employee-image {
+      border: 3px solid #3498db;
+      border-radius: 8px;
+      transition: all 0.3s ease;
+    }
+      
+    .employee-card:hover .employee-image {
+      border-color: #2ecc71;
+    }
+      
+    .employee-card.active .employee-image {
+      border-color: #4CAF50;
+    }
+      
+    .employee-card.inactive .employee-image {
+      border-color: #e74c3c;
+    }
+      
+    .job-title {
+      text-align: center;
+      background: #f1c40f;
+      color: #2c3e50;
+      padding: 4px 8px;
+      font-size: 0.9em;
+      font-weight: 600;
+      border-radius: 4px;
+      margin-bottom: 5px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="form-container">
+    <h1>Système de pointage du personnel</h1>
+    <form id="timeclockForm">
+      <div class="form-group">
+        <label for="submissionDate">Date:</label>
+        <input type="date" id="submissionDate" name="submissionDate" required>
+      </div>
+
+      <div class="form-group">
+        <label>Date et Heure:</label>
+        <div id="datetime"></div>
+        <input type="hidden" name="dateTime" id="dateTimeInput">
+      </div>
+
+      <div class="form-group">
+        <label>Localisation:</label>
+        <div id="location">Recherche de la position...</div>
+        <input type="hidden" name="location" id="locationInput">
+      </div>
+
+      <h2>Employés</h2>
+      <div class="employee-grid" id="employeeGrid">
+        <!-- Employee cards will be generated here -->
+      </div>
+
+      <div class="summary-container">
+        <div class="summary-header">
+          <h3>Récapitulatif des Pointages</h3>
+          <button type="button" id="toggleSummary" class="toggle-summary">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
+              <path d="M12 4.5C7 4.5 2.73 7.61 1 12c1.73 4.39 6 7.5 11 7.5s9.27-3.11 11-7.5c-1.73-4.39-6-7.5-11-7.5zM12 17c-2.76 0-5-2.24-5-5s2.24-5 5-5 5 2.24 5 5-2.24 5-5 5zm0-8c-1.66 0-3 1.34-3 3s1.34 3 3 3 3-1.34 3-3-1.34-3-3-3z"/>
+            </svg>
+          </button>
+        </div>
+      </div>
+
+      <div class="form-actions">
+        <button type="submit" id="submitTogooglesheet" style="margin-top: 10px;">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
+            <path d="M19.376 12.416L8.777 19.482c-.7.046-.137.078-.217.078-.133 0-.262-.053-.353-.146-.157-.148-.194-.368-.094-.558l3.53-6.39H5c-.202 0-.373-.116-.443-.3-.074-.181-.026-.385.116-.504l10.62-7.303c.094-.063.209-.095.323-.095.183 0 .341.084.437.232.094.147.105.333.026.49l-3.53 6.562h6.37c.204 0 .38.127.448.306.068.18.015.38-.12.495z"/>
+          </svg>
+          Send to Google Sheet
+        </button>
+        </button>
+        <button type="button" id="submitToSupabase" style="margin-top: 10px;">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
+            <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 15h-2v-6h2v6zm4 0h-2v-6h2v6zm-2-8h-2V7h2v2z"/>
+          </svg>
+          Send to Supabase
+        </button>
+      </div>
+    </form>
+  </div>
+
+  <div id="summaryModal" class="modal-overlay">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3>Récapitulatif des Pointages</h3>
+        <div class="modal-actions">
+          <button id="clearTimesheet" class="delete-history-btn">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
+              <path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"/>
+            </svg>
+            Supprimer l'historique
+          </button>
+          <button class="close-modal" id="closeModal">&times;</button>
+        </div>
+      </div>
+      <div id="timesheetContainer">
+        <table class="timesheet-table">
+          <thead>
+            <tr>
+              <th>Employé</th>
+              <th>Date</th>
+              <th>Heure d'arrivée</th>
+              <th>Heure de départ</th>
+              <th>Localisation</th>
+              <th>Statut</th>
+            </tr>
+          </thead>
+          <tbody id="timesheetBody">
+            <!-- Timesheet rows will be populated here -->
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <div id="employeeEditModal" class="modal-overlay">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3>Modifier les informations de l'employé</h3>
+        <button class="close-modal" id="closeEditModal">&times;</button>
+      </div>
+      <div class="edit-form-container">
+        <form id="employeeEditForm">
+          <input type="hidden" id="editEmployeeId">
+          
+          <div class="edit-form-group">
+            <label for="editName">Nom:</label>
+            <input type="text" id="editName" class="form-control" required>
+          </div>
+          
+          <div class="edit-form-group">
+            <label for="editJobTitle">Poste:</label>
+            <input type="text" id="editJobTitle" class="form-control" required>
+          </div>
+          
+          <div class="edit-form-group">
+            <label for="editImageUrl">URL de l'image:</label>
+            <input type="text" id="editImageUrl" class="form-control" required>
+          </div>
+          
+          <div class="edit-form-actions">
+            <button type="button" id="cancelEditBtn" class="action-button clock-out-btn">Annuler</button>
+            <button type="submit" id="saveEditBtn" class="action-button clock-in-btn">Enregistrer</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    window.jsPDF = window.jspdf.jsPDF;
+    
+    // Employee data
+    const employees = [
+      { id: 1, name: "Oussama", image: "https://img.freepik.com/vecteurs-premium/icone-utilisateur-simple-3d-isolee_169241-7120.jpg", status: "out", jobTitle: "Ingénieur" },
+      { id: 2, name: "Reda", image: "https://img.freepik.com/vecteurs-premium/icone-utilisateur-simple-3d-isolee_169241-7120.jpg", status: "out", jobTitle: "Chargé de mission" },
+      { id: 3, name: "Amina", image: "https://img.freepik.com/vecteurs-premium/icone-utilisateur-simple-3d-isolee_169241-7120.jpg", status: "out", jobTitle: "Assistante" },
+      { id: 4, name: "Nouhaila", image: "https://img.freepik.com/vecteurs-premium/icone-utilisateur-simple-3d-isolee_169241-7120.jpg", status: "out", jobTitle: "Charge de marketing" },
+      { id: 5, name: "Aya", image: "https://img.freepik.com/vecteurs-premium/icone-utilisateur-simple-3d-isolee_169241-7120.jpg", status: "out", jobTitle: "Chargé d'inventaire" },
+      { id: 6, name: "Aymane", image: "https://img.freepik.com/vecteurs-premium/icone-utilisateur-simple-3d-isolee_169241-7120.jpg", status: "out", jobTitle: "Technicien" },
+      { id: 7, name: "Driss", image: "https://img.freepik.com/vecteurs-premium/icone-utilisateur-simple-3d-isolee_169241-7120.jpg", status: "out", jobTitle: "Technicien" },
+      { id: 8, name: "Achraf", image: "https://img.freepik.com/vecteurs-premium/icone-utilisateur-simple-3d-isolee_169241-7120.jpg", status: "out", jobTitle: "Technicien" },
+      { id: 9, name: "Brahim", image: "https://img.freepik.com/vecteurs-premium/icone-utilisateur-simple-3d-isolee_169241-7120.jpg", status: "out", jobTitle: "Technicien" },
+      { id: 10, name: "ASOPHI", image: "https://img.freepik.com/vecteurs-premium/icone-utilisateur-simple-3d-isolee_169241-7120.jpg", status: "out", jobTitle: "Technicien" },
+      { id: 11, name: "Mousstafa", image: "https://img.freepik.com/vecteurs-premium/icone-utilisateur-simple-3d-isolee_169241-7120.jpg", status: "out", jobTitle: "Technicien" },
+      { id: 12, name: "Abdlekrim", image: "https://img.freepik.com/vecteurs-premium/icone-utilisateur-simple-3d-isolee_169241-7120.jpg", status: "out", jobTitle: "Technicien" },
+    ];
+    
+    // Timesheet data storage - load from localStorage if available
+    let timeRecords = JSON.parse(localStorage.getItem('timeRecords')) || [];
+    
+    // Update employee status based on saved records
+    function syncEmployeeStatusWithRecords() {
+      // Reset all employees to 'out' status first
+      employees.forEach(emp => emp.status = 'out');
+      
+      // Go through the records and update employee status for those still clocked in
+      timeRecords.forEach(record => {
+        if (record.status === 'in' && !record.clockOutTime) {
+          const employee = employees.find(emp => emp.id === record.employeeId);
+          if (employee) {
+            employee.status = 'in';
+            employee.clockInTime = record.clockInTime;
+            employee.clockInDate = record.date;
+            employee.clockInLocation = record.location;
+          }
+        }
+      });
+    }
+    
+    function updateDateTime() {
+      const now = new Date();
+      document.getElementById('datetime').textContent = now.toLocaleString('fr-FR');
+      document.getElementById('dateTimeInput').value = now.toISOString();
+    }
+    setInterval(updateDateTime, 1000);
+    updateDateTime();
+    
+    async function getLocationDetails(latitude, longitude) {
+      try {
+        const response = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}&zoom=18&addressdetails=1`, {
+          headers: {
+            'Accept-Language': 'fr'
+          }
+        });
+        if (!response.ok) throw new Error('Erreur réseau');
+        const data = await response.json();
+        return data.display_name;
+      } catch (error) {
+        console.error('Erreur lors de la récupération de l\'adresse:', error);
+        return null;
+      }
+    }
+    
+    async function updateLocation() {
+      const locationDiv = document.getElementById('location');
+      try {
+        locationDiv.textContent = 'Recherche de la position...';
+        const position = await new Promise((resolve, reject) => {
+          navigator.geolocation.getCurrentPosition(resolve, reject, {
+            enableHighAccuracy: true,
+            timeout: 3000,
+            maximumAge: 0
+          });
+        });
+        const {
+          latitude,
+          longitude
+        } = position.coords;
+        locationDiv.innerHTML = `
+          <div>Coordonnées trouvées</div>
+          <div class="location-details">
+            Latitude: ${latitude.toFixed(6)}<br>
+            Longitude: ${longitude.toFixed(6)}
+          </div>
+        `;
+        const address = await getLocationDetails(latitude, longitude);
+        if (address) {
+          locationDiv.innerHTML = `
+            <div>${address}</div>
+            <div class="location-details">
+              Latitude: ${latitude.toFixed(6)}<br>
+              Longitude: ${longitude.toFixed(6)}
+            </div>
+          `;
+          document.getElementById('locationInput').value = address;
+        }
+      } catch (error) {
+        locationDiv.textContent = `Erreur de localisation: ${error.message}`;
+      }
+    }
+    
+    updateLocation();
+    setInterval(() => {
+      if (document.getElementById('location').textContent.includes('Erreur') || 
+          document.getElementById('location').textContent.includes('Recherche')) {
+        updateLocation();
+      }
+    }, 60000);
+    
+    // Initialize employee grid
+    function initEmployeeGrid() {
+      const grid = document.getElementById('employeeGrid');
+      grid.innerHTML = '';
+      
+      employees.forEach(employee => {
+        const card = document.createElement('div');
+        card.className = `employee-card ${employee.status === 'in' ? 'active' : 'inactive'}`;
+        card.dataset.employeeId = employee.id;
+        
+        const statusIndicator = document.createElement('div');
+        statusIndicator.className = `status-indicator status-${employee.status}`;
+        
+        const imageContainer = document.createElement('div');
+        imageContainer.className = 'employee-image-container';
+        
+        const img = document.createElement('img');
+        img.src = employee.image;
+        img.alt = employee.name;
+        img.className = 'employee-image';
+        
+        const editBtn = document.createElement('div');
+        editBtn.className = 'edit-employee';
+        editBtn.innerHTML = `
+          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
+            <path d="M12.146.146a.5.5 0 0 1 .708 0l3 3a.5.5 0 0 1 0 .708l-10 10a.5.5 0 0 1-.168.11l-5 2a.5.5 0 0 1-.65-.65l2-5a.5.5 0 0 1 .11-.168l10-10zM11.207 2.5 13.5 4.793 14.793 3.5 12.5 1.207 11.207 2.5zm1.586 3L10.5 3.207 4 9.707V10h.5a.5.5 0 0 1 .5.5v.5h.5a.5.5 0 0 1 .5.5v.5h.293l6.5-6.5zm-9.761 5.175-.106.106-1.528 3.821 3.821-1.528.106-.106A.5.5 0 0 1 5 12.5V12h-.5a.5.5 0 0 1-.5-.5V11h-.5a.5.5 0 0 1-.468-.325z"/>
+          </svg>
+        `;
+        editBtn.addEventListener('click', (e) => {
+          e.stopPropagation();
+          openEditModal(employee);
+        });
+        
+        const infoDiv = document.createElement('div');
+        infoDiv.className = 'employee-info';
+        
+        const jobTitleDiv = document.createElement('div');
+        jobTitleDiv.className = 'job-title';
+        jobTitleDiv.textContent = employee.jobTitle;
+        
+        const nameDiv = document.createElement('div');
+        nameDiv.className = 'employee-name';
+        nameDiv.textContent = employee.name;
+        
+        imageContainer.appendChild(img);
+        imageContainer.appendChild(editBtn);
+        imageContainer.appendChild(statusIndicator);
+        
+        infoDiv.appendChild(nameDiv);
+        infoDiv.appendChild(jobTitleDiv);
+        
+        const actionDiv = document.createElement('div');
+        actionDiv.className = 'clock-action';
+        
+        if (employee.status === 'out') {
+          const clockInBtn = document.createElement('button');
+          clockInBtn.className = 'action-button clock-in-btn';
+          clockInBtn.textContent = 'Arrivée';
+          clockInBtn.onclick = (e) => {
+            e.stopPropagation();
+            clockInEmployee(employee.id);
+          };
+          actionDiv.appendChild(clockInBtn);
+        } else {
+          const clockOutBtn = document.createElement('button');
+          clockOutBtn.className = 'action-button clock-out-btn';
+          clockOutBtn.textContent = 'Départ';
+          clockOutBtn.onclick = (e) => {
+            e.stopPropagation();
+            clockOutEmployee(employee.id);
+          };
+          actionDiv.appendChild(clockOutBtn);
+        }
+        
+        card.appendChild(imageContainer);
+        card.appendChild(infoDiv);
+        card.appendChild(actionDiv);
+        
+        card.addEventListener('click', () => {
+          if (employee.status === 'out') {
+            clockInEmployee(employee.id);
+          } else {
+            clockOutEmployee(employee.id);
+          }
+        });
+        
+        grid.appendChild(card);
+      });
+    }
+    
+    // Function to open the edit modal
+    function openEditModal(employee) {
+      // Populate the form fields
+      document.getElementById('editEmployeeId').value = employee.id;
+      document.getElementById('editName').value = employee.name;
+      document.getElementById('editJobTitle').value = employee.jobTitle;
+      document.getElementById('editImageUrl').value = employee.image;
+      
+      // Show the modal
+      const modal = document.getElementById('employeeEditModal');
+      const modalContent = modal.querySelector('.modal-content');
+      modal.classList.add('modal-show');
+      setTimeout(() => {
+        modalContent.classList.add('modal-content-show');
+      }, 10);
+    }
+    
+    // Function to save employee edits
+    function saveEmployeeEdit(event) {
+      event.preventDefault();
+      
+      const id = parseInt(document.getElementById('editEmployeeId').value);
+      const name = document.getElementById('editName').value.trim();
+      const jobTitle = document.getElementById('editJobTitle').value.trim();
+      const imageUrl = document.getElementById('editImageUrl').value.trim();
+      
+      if (!name || !jobTitle || !imageUrl) {
+        alert('Veuillez remplir tous les champs');
+        return;
+      }
+      
+      // Find and update the employee
+      const employeeIndex = employees.findIndex(emp => emp.id === id);
+      if (employeeIndex !== -1) {
+        employees[employeeIndex].name = name;
+        employees[employeeIndex].jobTitle = jobTitle;
+        employees[employeeIndex].image = imageUrl;
+        
+        // Update any related records in timeRecords
+        timeRecords.forEach(record => {
+          if (record.employeeId === id) {
+            record.employeeName = name;
+          }
+        });
+        
+        // Save updated records to localStorage
+        localStorage.setItem('timeRecords', JSON.stringify(timeRecords));
+        
+        // Update the UI
+        initEmployeeGrid();
+        updateTimesheetTable();
+        
+        // Close the modal
+        closeEditModal();
+        
+        alert('Informations de l\'employé mises à jour avec succès');
+      }
+    }
+    
+    // Function to close the edit modal
+    function closeEditModal() {
+      const modal = document.getElementById('employeeEditModal');
+      const modalContent = modal.querySelector('.modal-content');
+      
+      modalContent.classList.remove('modal-content-show');
+      setTimeout(() => {
+        modal.classList.remove('modal-show');
+      }, 300);
+    }
+    
+    // Clock in an employee
+    function clockInEmployee(employeeId) {
+      const employee = employees.find(emp => emp.id === employeeId);
+      if (!employee) return;
+      
+      // Get current date and time
+      const now = new Date();
+      const today = now.toISOString().split('T')[0];
+      const currentTime = now.toLocaleTimeString('fr-FR');
+      const locationText = document.getElementById('location').textContent;
+      
+      // Update employee status
+      employee.status = 'in';
+      employee.clockInTime = currentTime;
+      employee.clockInDate = today;
+      employee.clockInLocation = locationText;
+      
+      // Create timesheet record
+      const newRecord = {
+        employeeId: employee.id,
+        employeeName: employee.name,
+        date: today,
+        clockInTime: currentTime,
+        clockOutTime: null,
+        location: locationText,
+        status: 'in'
+      };
+      
+      // Add to time records
+      timeRecords.push(newRecord);
+      
+      // Save to localStorage
+      localStorage.setItem('timeRecords', JSON.stringify(timeRecords));
+      
+      // Update UI
+      initEmployeeGrid();
+      updateTimesheetTable();
+      
+      // Show success message
+      alert(`${employee.name} s'est pointé à ${currentTime}`);
+    }
+    
+    // Clock out an employee
+    function clockOutEmployee(employeeId) {
+      const employee = employees.find(emp => emp.id === employeeId);
+      if (!employee) return;
+      
+      // Get current time
+      const now = new Date();
+      const currentTime = now.toLocaleTimeString('fr-FR');
+      
+      // Find the record for this employee
+      const record = timeRecords.find(rec => 
+        rec.employeeId === employeeId && 
+        rec.status === 'in' && 
+        !rec.clockOutTime
+      );
+      
+      if (record) {
+        // Update record
+        record.clockOutTime = currentTime;
+        record.status = 'out';
+        
+        // Update employee status
+        employee.status = 'out';
+        employee.clockOutTime = currentTime;
+        
+        // Save to localStorage
+        localStorage.setItem('timeRecords', JSON.stringify(timeRecords));
+        
+        // Update UI
+        initEmployeeGrid();
+        updateTimesheetTable();
+        
+        // Show success message
+        alert(`${employee.name} s'est déconnecté à ${currentTime}`);
+      }
+    }
+    
+    // Update the timesheet table in the summary modal
+    function updateTimesheetTable() {
+      const tbody = document.getElementById('timesheetBody');
+      tbody.innerHTML = '';
+      
+      timeRecords.forEach(record => {
+        const row = document.createElement('tr');
+        
+        const nameCell = document.createElement('td');
+        nameCell.textContent = record.employeeName;
+        
+        const dateCell = document.createElement('td');
+        dateCell.textContent = record.date;
+        
+        const clockInCell = document.createElement('td');
+        clockInCell.textContent = record.clockInTime;
+        
+        const clockOutCell = document.createElement('td');
+        clockOutCell.textContent = record.clockOutTime || '—';
+        
+        const locationCell = document.createElement('td');
+        locationCell.textContent = record.location || '—';
+        
+        const statusCell = document.createElement('td');
+        const statusSpan = document.createElement('span');
+        statusSpan.className = `timesheet-status status-${record.status}`;
+        statusSpan.textContent = record.status === 'in' ? 'Présent' : 'Sorti';
+        statusCell.appendChild(statusSpan);
+        
+        row.appendChild(nameCell);
+        row.appendChild(dateCell);
+        row.appendChild(clockInCell);
+        row.appendChild(clockOutCell);
+        row.appendChild(locationCell);
+        row.appendChild(statusCell);
+        
+        tbody.appendChild(row);
+      });
+    }
+    
+    // Show/hide summary modal
+    document.getElementById('toggleSummary').addEventListener('click', function() {
+      const summaryModal = document.getElementById('summaryModal');
+      const modalContent = summaryModal.querySelector('.modal-content');
+      
+      // Update timesheet table
+      updateTimesheetTable();
+      
+      // Show modal with animation
+      summaryModal.classList.add('modal-show');
+      setTimeout(() => {
+        modalContent.classList.add('modal-content-show');
+      }, 10);
+      
+      // Change icon when toggled
+      this.classList.toggle('active');
+      if (this.classList.contains('active')) {
+        this.innerHTML = `
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
+            <path d="M12 7c-2.76 0-5 2.24-5 5s2.24 5 5 5 5-2.24 5-5-2.24-5-5-5zm0 8c-1.66 0-3-1.34-3-3s1.34-3 3-3 3 1.34 3 3-1.34 3-3 3z"/>
+          </svg>
+        `;
+      } else {
+        this.innerHTML = `
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
+            <path d="M12 4.5C7 4.5 2.73 7.61 1 12c1.73 4.39 6 7.5 11 7.5s9.27-3.11 11-7.5c-1.73-4.39-6-7.5-11-7.5zM12 17c-2.76 0-5-2.24-5-5s2.24-5 5-5 5 2.24 5 5-2.24 5-5 5zm0-8c-1.66 0-3 1.34-3 3s1.34 3 3 3 3-1.34 3-3-1.34-3-3-3z"/>
+        </svg>
+        `;
+      }
+    });
+    
+    // Close modal event listeners
+    document.getElementById('closeModal').addEventListener('click', function() {
+      const summaryModal = document.getElementById('summaryModal');
+      const modalContent = summaryModal.querySelector('.modal-content');
+      
+      // Hide with animation
+      modalContent.classList.remove('modal-content-show');
+      setTimeout(() => {
+        summaryModal.classList.remove('modal-show');
+      }, 300);
+      
+      // Reset toggle button state
+      const toggleButton = document.getElementById('toggleSummary');
+      toggleButton.classList.remove('active');
+      toggleButton.innerHTML = `
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
+          <path d="M12 4.5C7 4.5 2.73 7.61 1 12c1.73 4.39 6 7.5 11 7.5s9.27-3.11 11-7.5c-1.73-4.39-6-7.5-11-7.5zM12 17c-2.76 0-5-2.24-5-5s2.24-5 5-5 5 2.24 5 5-2.24 5-5 5zm0-8c-1.66 0-3 1.34-3 3s1.34 3 3 3 3-1.34 3-3-1.34-3-3-3z"/>
+        </svg>
+      `;
+    });
+    
+    document.getElementById('summaryModal').addEventListener('click', function(event) {
+      if (event.target === this) {
+        document.getElementById('closeModal').click();
+      }
+    });
+    
+    // Initialize on page load
+    document.addEventListener('DOMContentLoaded', function() {
+      // Load data from localStorage and sync employee status
+      syncEmployeeStatusWithRecords();
+      
+      initEmployeeGrid();
+      updateTimesheetTable();
+      
+      // Set default date to today
+      const today = new Date().toISOString().split('T')[0];
+      document.getElementById('submissionDate').value = today;
+      
+      // Clear timesheet history button functionality
+      document.getElementById('clearTimesheet').addEventListener('click', function() {
+        if (confirm('Êtes-vous sûr de vouloir supprimer tout l\'historique de pointage?')) {
+          localStorage.removeItem('timeRecords');
+          timeRecords = [];
+          
+          // Reset employee status
+          employees.forEach(emp => emp.status = 'out');
+          
+          // Update UI
+          initEmployeeGrid();
+          updateTimesheetTable();
+          
+          alert('L\'historique de pointage a été supprimé.');
+        }
+      });
+      
+      // Add clear data button functionality
+      document.getElementById('toggleSummary').addEventListener('dblclick', function() {
+        if (confirm('Voulez-vous effacer toutes les données de pointage enregistrées?')) {
+          localStorage.removeItem('timeRecords');
+          timeRecords = [];
+          
+          // Reset employee status
+          employees.forEach(emp => emp.status = 'out');
+          
+          // Update UI
+          initEmployeeGrid();
+          updateTimesheetTable();
+          
+          alert('Toutes les données ont été effacées.');
+        }
+      });
+      
+      // Google Sheets submission handler
+      document.getElementById("timeclockForm").addEventListener("submit", function(e) {
+        e.preventDefault();
+
+        const submitBtn = document.getElementById("submitTogooglesheet");
+        submitBtn.innerText = "Envoi en cours...";
+        submitBtn.classList.add('active');
+
+        const formData = new FormData();
+        formData.append('action', 'timesheet');
+        formData.append('date', document.getElementById('submissionDate').value);
+        
+        // Add all timesheet records
+        formData.append('records', JSON.stringify(timeRecords));
+
+        fetch("https://script.google.com/macros/s/AKfycbwslJzwnb1OZA2VahPAafUrqr7_xah-xh-CUp88pzuSGm8KMUQu_1TReL1yhKYOmqn5iw/exec", {
+            method: "POST",
+            body: formData
+          })
+          .then(response => response.text())
+          .then(data => {
+            alert("Données de pointage envoyées avec succès à Google Sheets !");
+            submitBtn.innerHTML = `
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M19.376 12.416L8.777 19.482c-.7.046-.137.078-.217.078-.133 0-.262-.053-.353-.146-.157-.148-.194-.368-.094-.558l3.53-6.39H5c-.202 0-.373-.116-.443-.3-.074-.181-.026-.385.116-.504l10.62-7.303c.094-.063.209-.095.323-.095.183 0 .341.084.437.232.094.147.105.333.026.49l-3.53 6.562h6.37c.204 0 .38.127.448.306.068.18.015.38-.12.495z"/>
+              </svg>
+              Send to Google Sheet
+            `;
+            setTimeout(() => submitBtn.classList.remove('active'), 2000);
+          })
+          .catch(error => {
+            alert("Erreur lors de l'envoi des données.");
+            submitBtn.innerHTML = `
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M19.376 12.416L8.777 19.482c-.7.046-.137.078-.217.078-.133 0-.262-.053-.353-.146-.157-.148-.194-.368-.094-.558l3.53-6.39H5c-.202 0-.373-.116-.443-.3-.074-.181-.026-.385.116-.504l10.62-7.303c.094-.063.209-.095.323-.095.183 0 .341.084.437.232.094.147.105.333.026.49l-3.53 6.562h6.37c.204 0 .38.127.448.306.068.18.015.38-.12.495z"/>
+              </svg>
+              Try again
+            `;
+            submitBtn.classList.remove('active');
+          });
+      });
+    });
+    
+    // Employee edit form submission
+    document.getElementById('employeeEditForm').addEventListener('submit', saveEmployeeEdit);
+    
+    // Close edit modal buttons
+    document.getElementById('closeEditModal').addEventListener('click', closeEditModal);
+    document.getElementById('cancelEditBtn').addEventListener('click', closeEditModal);
+    
+    document.getElementById('employeeEditModal').addEventListener('click', function(event) {
+      if (event.target === this) {
+        closeEditModal();
+      }
+    });
+  </script>
+
+  <script src="https://unpkg.com/@supabase/supabase-js"></script>
+  <script>
+    // Fonction pour initialiser Supabase et configurer le gestionnaire d'événements
+    function initSupabase() {
+      // Configuration de Supabase
+      const supabaseUrl = "https://quflgxjymdocfcqwppxl.supabase.co";
+      const supabaseKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InF1ZmxneGp5bWRvY2ZjcXdwcHhsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDA4MjI5NzAsImV4cCI6MjA1NjM5ODk3MH0.084B-my88YIXT0TZ2uD0UT82xU2M4yRhBv2idNUSjLQ";
+  
+
+      // Make sure Supabase client is properly initialized
+      let supabase;
+      try {
+        supabase = window.supabase.createClient(supabaseUrl, supabaseKey);
+        console.log("Supabase client initialized successfully");
+      } catch (error) {
+        console.error("Failed to initialize Supabase client:", error);
+        return;
+      }
+      
+      // Add event listener to the "Send to Supabase" button
+      document.getElementById('submitToSupabase').addEventListener('click', async function(event) {
+        event.preventDefault();
+        
+        // Show loading state
+        this.innerText = "Envoi en cours...";
+        this.classList.add('active');
+        
+        try {
+          // Collect timesheet data from the table
+          const timesheetTable = document.getElementById('timesheetBody');
+          if (!timesheetTable || timesheetTable.querySelectorAll('tr').length === 0) {
+            throw new Error("Aucune donnée de pointage disponible");
+          }
+          
+          const timesheetRows = Array.from(timesheetTable.querySelectorAll('tr'));
+          
+          // Create an array to store records formatted for Supabase
+          const records = [];
+          
+          // Iterate through table rows and collect data
+          timesheetRows.forEach(row => {
+            const cells = row.querySelectorAll('td');
+            if (cells.length >= 6) {
+              const record = {
+                employee_name: cells[0].textContent,
+                date: cells[1].textContent,
+                clock_in: cells[2].textContent,
+                clock_out: cells[3].textContent !== '—' ? cells[3].textContent : null,
+                location: cells[4].textContent !== '—' ? cells[4].textContent : null,
+                status: cells[5].textContent.includes('Présent') ? 'in' : 'out',
+                submission_date: document.getElementById('submissionDate').value,
+                submitted_at: new Date().toISOString()
+              };
+              
+              records.push(record);
+            }
+          });
+          
+          if (records.length === 0) {
+            throw new Error("Aucun enregistrement valide à envoyer");
+          }
+          
+          console.log("Preparing to send records to Supabase:", records);
+          
+          // Test Supabase connection first
+          const { data: testData, error: testError } = await supabase
+            .from("employee_timesheets")
+            .select("id")
+            .limit(1);
+            
+          if (testError) {
+            console.error("Supabase connection test failed:", testError);
+            throw new Error(`Erreur de connexion à Supabase: ${testError.message}`);
+          }
+          
+          console.log("Supabase connection test successful");
+          
+          // Send data to Supabase
+          const { data, error } = await supabase
+            .from("employee_timesheets")
+            .insert(records);
+          
+          if (error) {
+            console.error("Detailed Supabase error:", error);
+            throw new Error(error.message || "Erreur lors de l'insertion des données");
+          }
+          
+          console.log("Data successfully sent to Supabase:", data);
+          
+          // Show success message
+          alert("Données de pointage envoyées avec succès à Supabase!");
+          this.innerHTML = `
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
+              <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 15h-2v-6h2v6zm4 0h-2v-6h2v6zm-2-8h-2V7h2v2z"/>
+            </svg>
+            Envoi réussi!
+          `;
+          
+          // Return to initial state after a few seconds
+          setTimeout(() => {
+            this.innerHTML = `
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 15h-2v-6h2v6zm4 0h-2v-6h2v6zm-2-8h-2V7h2v2z"/>
+              </svg>
+              Send to Supabase
+            `;
+            this.classList.remove('active');
+          }, 3000);
+          
+        } catch (error) {
+          // Handle errors
+          console.error("Error sending to Supabase:", error);
+          alert(`Erreur lors de l'envoi des données: ${error.message}`);
+          
+          // Reset button
+          this.innerHTML = `
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
+              <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 15h-2v-6h2v6zm4 0h-2v-6h2v6zm-2-8h-2V7h2v2z"/>
+            </svg>
+            Réessayer
+          `;
+          this.classList.remove('active');
+        }
+      });
+    }
+
+    // Ensure supabase-js is loaded before initialization
+    document.addEventListener('DOMContentLoaded', function() {
+      // Check if the correct version of supabase-js is loaded
+      if (typeof window.supabase !== 'undefined' && typeof window.supabase.createClient === 'function') {
+        console.log("Supabase library detected, initializing...");
+        initSupabase();
+      } else {
+        console.log("Loading Supabase library...");
+        // Load the supabase-js script with a specific version
+        const script = document.createElement('script');
+        script.src = "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.38.4/dist/umd/supabase.min.js";
+        script.onload = function() {
+          console.log("Supabase library loaded successfully");
+          initSupabase();
+        };
+        script.onerror = function() {
+          console.error("Failed to load Supabase library");
+          alert("Impossible de charger la bibliothèque Supabase. Veuillez réessayer plus tard.");
+        };
+        document.head.appendChild(script);
+      }
+    });
+  </script>
+</body>
+
+</html>
