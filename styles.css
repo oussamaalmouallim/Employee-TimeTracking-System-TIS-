@@ -1,0 +1,462 @@
+body {
+  font-family: 'Segoe UI', sans-serif;
+  max-width: 800px;
+  margin: 20px auto;
+  padding: 20px;
+  background-color: #f5f5f5;
+  background-image: linear-gradient(to bottom right, #f9f9f9, #ececec);
+  background-size: 200% 200%;
+  animation: gradientBG 15s ease infinite;
+}
+
+@keyframes gradientBG {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
+.form-container {
+  background: url('https://www.ecoview.ae/wp-content/uploads/2022/02/TIS-LOGO-e1646026001988_01e0013b0.png') no-repeat;
+  background-size: 20%;
+  background-position: top right;
+  padding: 30px;
+  border-radius: 10px;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+  transition: all 0.2s ease;
+  background-color: white;
+  border-top: 5px solid #007bff;
+}
+
+.form-container:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 15px 30px rgba(0, 0, 0, 0.15);
+}
+
+.form-group {
+  margin-bottom: 25px;
+  transition: all 0.2s ease;
+}
+
+.form-group:hover {
+  transform: translateX(2px);
+}
+
+label {
+  display: block;
+  margin-bottom: 8px;
+  font-weight: bold;
+  color: #333;
+  transition: color 0.3s;
+}
+
+.form-group:hover label {
+  color: #007bff;
+}
+
+input[type="text"],
+select,
+textarea {
+  width: 100%;
+  padding: 12px;
+  border: 1px solid #ddd;
+  border-radius: 5px;
+  margin-bottom: 10px;
+  transition: all 0.3s ease;
+  box-shadow: inset 0 1px 3px rgba(0,0,0,0.1);
+}
+
+input[type="text"]:focus,
+select:focus,
+textarea:focus {
+  border-color: #007bff;
+  box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.25);
+  outline: none;
+}
+
+/* Employee Grid Styles */
+.employee-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  gap: 20px;
+  margin-top: 20px;
+  margin-bottom: 30px;
+}
+
+.employee-card {
+  background-color: white;
+  border-radius: 10px;
+  overflow: hidden;
+  box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+  transition: all 0.3s ease;
+  cursor: pointer;
+  position: relative;
+  border: none;
+}
+
+.employee-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 15px 30px rgba(0,0,0,0.2);
+}
+
+.employee-image-container {
+  position: relative;
+  overflow: hidden;
+  height: 180px;
+}
+
+.employee-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: all 0.5s ease;
+  border: none;
+  filter: brightness(0.9);
+}
+
+.employee-card:hover .employee-image {
+  filter: brightness(1.1);
+  transform: scale(1.05);
+}
+
+.employee-info {
+  padding: 15px;
+  background: linear-gradient(to bottom, #ffffff, #f5f5f5);
+}
+
+.employee-name {
+  font-size: 1.1em;
+  font-weight: 600;
+  margin: 0;
+  color: #2c3e50;
+  text-align: center;
+}
+
+.job-title {
+  display: inline-block;
+  background: linear-gradient(135deg, #f1c40f, #f39c12);
+  color: #2c3e50;
+  padding: 4px 10px;
+  font-size: 0.85em;
+  font-weight: 600;
+  border-radius: 20px;
+  margin: 8px 0;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+  width: 100%;
+  text-align: center;
+}
+
+.edit-employee {
+  position: absolute;
+  top: 10px;
+  left: 10px;
+  background: rgba(255, 255, 255, 0.8);
+  border-radius: 50%;
+  width: 30px;
+  height: 30px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  z-index: 5;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+}
+
+.employee-card:hover .edit-employee {
+  opacity: 1;
+}
+
+/* Employee Edit Modal */
+#employeeEditModal {
+  z-index: 1100;
+}
+
+.edit-form-container {
+  padding: 20px;
+}
+
+.edit-form-group {
+  margin-bottom: 15px;
+}
+
+.edit-form-group label {
+  display: block;
+  margin-bottom: 5px;
+  font-weight: 600;
+}
+
+.edit-form-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 20px;
+}
+
+/* Timesheet table styles */
+.timesheet-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 20px;
+  background: white;
+  box-shadow: 0 5px 15px rgba(0,0,0,0.08);
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.timesheet-table th,
+.timesheet-table td {
+  padding: 12px 15px;
+  text-align: left;
+  border-bottom: 1px solid #eee;
+}
+
+.timesheet-table th {
+  background-color: #f8f9fa;
+  font-weight: bold;
+  color: #2c3e50;
+}
+
+.timesheet-table tr:last-child td {
+  border-bottom: none;
+}
+
+.timesheet-table tr:hover td {
+  background-color: rgba(0, 123, 255, 0.05);
+}
+
+.timesheet-status {
+  padding: 4px 8px;
+  border-radius: 20px;
+  font-size: 0.85em;
+  font-weight: bold;
+}
+
+.status-in {
+  background-color: #e8f5e9;
+  color: #2e7d32;
+}
+
+.status-out {
+  background-color: #ffebee;
+  color: #c62828;
+}
+
+/* Modal Styles */
+.modal-overlay {
+  display: none;
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.5);
+  z-index: 1000;
+  justify-content: center;
+  align-items: center;
+}
+
+.modal-overlay.modal-show {
+  display: flex;
+}
+
+.modal-content {
+  background-color: white;
+  border-radius: 10px;
+  width: 90%;
+  max-width: 800px;
+  max-height: 90vh;
+  overflow: auto;
+  box-shadow: 0 15px 30px rgba(0, 0, 0, 0.2);
+  transform: translateY(30px);
+  opacity: 0;
+  transition: transform 0.3s ease, opacity 0.3s ease;
+}
+
+.modal-content-show {
+  transform: translateY(0);
+  opacity: 1;
+}
+
+.modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 15px 20px;
+  border-bottom: 1px solid #eee;
+}
+
+.modal-header h3 {
+  margin: 0;
+  color: #333;
+}
+
+.modal-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.delete-history-btn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: linear-gradient(135deg, #ff6b6b, #ee0979);
+  color: white;
+  border: none;
+  border-radius: 5px;
+  padding: 8px 15px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 10px rgba(238, 9, 121, 0.3);
+}
+
+.delete-history-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 15px rgba(238, 9, 121, 0.4);
+}
+
+.delete-history-btn svg {
+  width: 18px;
+  height: 18px;
+}
+
+.close-modal {
+  background: none;
+  border: none;
+  font-size: 24px;
+  cursor: pointer;
+  color: #777;
+  transition: color 0.2s;
+}
+
+.close-modal:hover {
+  color: #f44336;
+}
+
+#timesheetContainer {
+  padding: 20px;
+}
+
+/* Enhanced Button Styles */
+.form-actions button, .action-button {
+  padding: 12px 20px;
+  border: none;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  color: #fff;
+  background: linear-gradient(135deg, #6e8efb, #4a6cf7);
+  box-shadow: 0 4px 10px rgba(74, 108, 247, 0.3);
+}
+
+.form-actions button:hover, .action-button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 15px rgba(74, 108, 247, 0.4);
+}
+
+.form-actions button:active, .action-button:active {
+  transform: translateY(1px);
+  box-shadow: 0 2px 5px rgba(74, 108, 247, 0.4);
+}
+
+.form-actions button svg, .action-button svg {
+  width: 20px;
+  height: 20px;
+}
+
+.form-actions button.active {
+  background: linear-gradient(135deg, #45c57e, #21a366);
+  box-shadow: 0 4px 10px rgba(33, 163, 102, 0.3);
+}
+
+.clock-in-btn {
+  background: linear-gradient(135deg, #52c234, #36b677) !important;
+  box-shadow: 0 4px 10px rgba(54, 182, 119, 0.3) !important;
+}
+
+.clock-out-btn {
+  background: linear-gradient(135deg, #ff6b6b, #ee0979) !important;
+  box-shadow: 0 4px 10px rgba(238, 9, 121, 0.3) !important;
+}
+
+/* Enhanced Summary Toggle Button */
+.toggle-summary {
+  background: none;
+  border: none;
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  background: linear-gradient(135deg, #00c6ff, #0072ff);
+  box-shadow: 0 4px 10px rgba(0, 114, 255, 0.3);
+}
+
+.toggle-summary svg {
+  width: 24px;
+  height: 24px;
+  fill: white;
+  transition: all 0.3s ease;
+}
+
+.toggle-summary:hover {
+  transform: rotate(15deg) scale(1.1);
+  box-shadow: 0 6px 15px rgba(0, 114, 255, 0.4);
+}
+
+.toggle-summary.active {
+  background: linear-gradient(135deg, #ff5f6d, #ff9966);
+  box-shadow: 0 4px 10px rgba(255, 95, 109, 0.3);
+  transform: rotate(-15deg);
+}
+
+.summary-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 15px;
+}
+
+.employee-image {
+  border: 3px solid #3498db;
+  border-radius: 8px;
+  transition: all 0.3s ease;
+}
+  
+.employee-card:hover .employee-image {
+  border-color: #2ecc71;
+}
+  
+.employee-card.active .employee-image {
+  border-color: #4CAF50;
+}
+  
+.employee-card.inactive .employee-image {
+  border-color: #e74c3c;
+}
+  
+.job-title {
+  text-align: center;
+  background: #f1c40f;
+  color: #2c3e50;
+  padding: 4px 8px;
+  font-size: 0.9em;
+  font-weight: 600;
+  border-radius: 4px;
+  margin-bottom: 5px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
