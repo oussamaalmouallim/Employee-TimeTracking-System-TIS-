@@ -46,45 +46,28 @@ function updateDateTime() {
 setInterval(updateDateTime, 1000);
 updateDateTime();
 
-async function getLocationDetails(latitude, longitude) {
-  try {
-    const response = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}&zoom=18&addressdetails=1`, {
-      headers: {
-        'Accept-Language': 'fr'
-      }
-    });
-    if (!response.ok) throw new Error('Erreur réseau');
-    const data = await response.json();
-    return data.display_name;
-  } catch (error) {
-    console.error('Erreur lors de la récupération de l\'adresse:', error);
-    return null;
-  }
-}
-
 async function updateLocation() {
   const locationDiv = document.getElementById('location');
   try {
     locationDiv.textContent = 'Recherche de la position...';
-    const position = await new Promise((resolve, reject) => {
-      navigator.geolocation.getCurrentPosition(resolve, reject, {
-        enableHighAccuracy: true,
-        timeout: 3000,
-        maximumAge: 0
-      });
-    });
-    const {
-      latitude,
-      longitude
-    } = position.coords;
+    
+    // Import and use the location service
+    const locationService = (await import('./location.js')).default;
+    const position = await locationService.getLocation();
+    
+    const { latitude, longitude } = position.coords;
+    const source = position.source || 'gps';
+    
     locationDiv.innerHTML = `
-      <div>Coordonnées trouvées</div>
+      <div>Coordonnées trouvées (${source})</div>
       <div class="location-details">
         Latitude: ${latitude.toFixed(6)}<br>
         Longitude: ${longitude.toFixed(6)}
       </div>
     `;
-    const address = await getLocationDetails(latitude, longitude);
+    
+    // Get address from coordinates
+    const address = await locationService.getAddressFromCoords(latitude, longitude);
     if (address) {
       locationDiv.innerHTML = `
         <div>${address}</div>
@@ -96,17 +79,20 @@ async function updateLocation() {
       document.getElementById('locationInput').value = address;
     }
   } catch (error) {
-    locationDiv.textContent = `Erreur de localisation: ${error.message}`;
+    locationDiv.textContent = `Impossible de déterminer votre position exacte`;
+    document.getElementById('locationInput').value = "Position non disponible";
   }
 }
 
 updateLocation();
 setInterval(() => {
-  if (document.getElementById('location').textContent.includes('Erreur') || 
-      document.getElementById('location').textContent.includes('Recherche')) {
+  const locationText = document.getElementById('location').textContent;
+  if (locationText.includes('Erreur') || 
+      locationText.includes('Recherche') || 
+      locationText.includes('Impossible')) {
     updateLocation();
   }
-}, 60000);
+}, 120000); // Check every 2 minutes instead of every minute
 
 // Initialize employee grid
 function initEmployeeGrid() {
@@ -406,7 +392,7 @@ document.getElementById('toggleSummary').addEventListener('click', function() {
   if (this.classList.contains('active')) {
     this.innerHTML = `
       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
-        <path d="M12 7c-2.76 0-5 2.24-5 5s2.24 5 5 5 5-2.24 5-5-2.24-5-5-5zm0 8c-1.66 0-3-1.34-3-3s1.34-3 3-3 3 1.34 3 3-1.34 3-3 3z"/>
+        <path d="M12 7c-2.76 0-5 2.24-5 5s2.24 5 5 5 5-2.24 5-5-2.24-5-5-5zm0 8c-1.66 0-3 1.34-3 3s1.34 3 3 3 3-1.34 3-3-1.34-3-3-3z"/>
       </svg>
     `;
   } else {
