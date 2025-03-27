@@ -3,7 +3,7 @@ import locationHelper from './location-helper.js';
 
 // Employee data
 const employees = [
-  { id: 1, name: "Oussama", image: "/oussama.jpg", status: "out", jobTitle: "Ingénieur" },
+  { id: 1, name: "Oussama", image: "https://img.freepik.com/vecteurs-premium/icone-utilisateur-simple-3d-isolee_169241-7120.jpg", status: "out", jobTitle: "Ingénieur" },
   { id: 2, name: "Reda", image: "https://img.freepik.com/vecteurs-premium/icone-utilisateur-simple-3d-isolee_169241-7120.jpg", status: "out", jobTitle: "Chargé de mission" },
   { id: 3, name: "Amina", image: "https://img.freepik.com/vecteurs-premium/icone-utilisateur-simple-3d-isolee_169241-7120.jpg", status: "out", jobTitle: "Assistante" },
   { id: 4, name: "Nouhaila", image: "https://img.freepik.com/vecteurs-premium/icone-utilisateur-simple-3d-isolee_169241-7120.jpg", status: "out", jobTitle: "Charge de marketing" },
